@@ -1,0 +1,2 @@
+# Add any Python libraries your Spark application needs here.
+pandas
