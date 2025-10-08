@@ -5,7 +5,8 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 st.title("Pokémon Data Visualizer")
-st.markdown("Visualizing data locally while running core services in the Docker 'Cloud'.")
+st.markdown("Visualizing Pokemon data locally while running core services in the Docker 'Cloud'.")
+
 
 
 
@@ -65,20 +66,42 @@ if not df.empty:
 
    
 
-    def plot_total_stats_distribution(data):
-        fig, ax = plt.subplots(figsize=(10, 6))
-        sns.histplot(data['Total'], bins=20, kde=True, ax=ax, color='red')
-        ax.set_title('Distribution of Pokémon Total Stats')
-        ax.set_xlabel('Total Stats')
-        ax.set_ylabel('Count')
+    def plot_numeric_distributions(data):
+        # Select all numeric columns except for '#'
+        numeric_cols = [col for col in data.columns if pd.api.types.is_numeric_dtype(data[col]) and col != '#']
+        
+        # Create a grid of subplots
+        num_plots = len(numeric_cols)
+        num_cols = 3  # Adjust number of columns in the grid
+        num_rows = (num_plots + num_cols - 1) // num_cols
+        
+        fig, axes = plt.subplots(num_rows, num_cols, figsize=(15, num_rows * 4))
+        
+        # Ensure axes is always a flattened array for consistent iteration
+        if num_plots > 1:
+            axes = axes.flatten()
+        else:
+            axes = [axes]
+
+        for i, col in enumerate(numeric_cols):
+            sns.histplot(data[col], bins=20, kde=True, ax=axes[i])
+            axes[i].set_title(f'Distribution of {col}')
+            axes[i].set_xlabel(col)
+            axes[i].set_ylabel('Count')
+
+        # Hide any unused subplots
+        for i in range(num_plots, len(axes)):
+            axes[i].set_visible(False)
+
+        plt.tight_layout()
         return fig
 
     def plot_attack_vs_defense(data):
         fig, ax = plt.subplots(figsize=(8, 8))
-        sns.scatterplot(x='Attack', y='Defense', data=data, hue='Legendary', style='Legendary', palette='viridis', s=100, ax=ax)
+        sns.scatterplot(x='Attack', y='Defense', data=data, hue='Legendary', style='Legendary', palette='rocket', s=100, ax=ax)
         ax.set_title('Attack vs. Defense by Legendary Status')
-        ax.set_xlabel('Attack Stat')
-        ax.set_ylabel('Defense Stat')
+        ax.set_xlabel('Attack (ATK)')
+        ax.set_ylabel('Defense (DEF)')
         return fig
     
     def plot_element_distribution(data):
@@ -104,8 +127,8 @@ if not df.empty:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Total Stat Distribution")
-        st.pyplot(plot_total_stats_distribution(df))
+        st.subheader("Numeric Feature Distributions")
+        st.pyplot(plot_numeric_distributions(df))
 
     with col2:
         st.subheader("Attack vs. Defense")
@@ -115,5 +138,8 @@ if not df.empty:
     st.markdown("---")
     st.subheader("Element Type Distribution")
     st.pyplot(plot_element_distribution(df))
+
+
+    
 
 
